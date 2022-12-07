@@ -1,4 +1,4 @@
-//ex 3.2-step2
+//ex 3.3-step3
 
 const express = require('express');
 const app = express();
@@ -28,71 +28,9 @@ let persons = [
 
 app.use(express.json());
 
-app.get('/', (req, res) => {
-  res.send('<h1>Hello Express! Soon we will be ahead to MERN app...</h1>')
-});
-
-const generateId = () => {
-  const maxId = persons.length > 0
-    ? Math.max(...persons.map(p => p.id))
-    : 0
-  return maxId + 1
-}
-
-app.get('/info', (req, res) => {
-  const currentDate = new Date().toString();
-  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      res.send(
-        `<div>
-            <p>Phonebook has info for ${persons.length} people</p>
-          </div>
-          <div>
-            <p>${currentDate} (${timeZone})</p>
-          </div>`
-      )
-    });
-
-app.post('/api/persons', (req, res) => {
-  const body = req.body
-
-  if (!body.name) {
-    return res.status(404).json({
-      error: 'name is missing'
-    })
-  } else if (!body.number) {
-    return res.status(404).json({
-      error: 'number is missing'
-    })
-  }
-
-  const person = {
-    id: generateId(),
-    name: body.name,
-    number: body.number,
-  }
-
-  persons = persons.concat(person)
-  res.json(person)
-});
 
 app.get('/api/persons', (req, res) => {
   res.json(persons)
-});
-
-app.delete('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id);
-  persons = persons.filter(person => person.id === id) //filter method is here
-  res.status(204).end()
-});
-
-app.get('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id)
-  const person = persons.find(person => person.id === id)
-  if (person) {
-    res.json(person)
-  } else {
-    res.status(404).end()
-  }
 });
 
 const PORT = 5001
