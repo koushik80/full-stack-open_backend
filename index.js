@@ -1,35 +1,40 @@
-//ex 3.7-step7
+//ex 3.8-step8
 
 const express = require('express');
 const app = express();
 const morgan = require('morgan');
 
 let persons = [
-    {
-      "id": 1,
-      "name": "Arto Hellas",
-      "number": "040-123456"
-    },
-    {
-      "id": 2,
-      "name": "Ada Lovelace",
-      "number": "39-44-5323523"
-    },
-    {
-      "id": 3,
-      "name": "Dan Abramov",
-      "number": "12-43-234345"
-    },
-    {
-      "id": 4,
-      "name": "Mary Poppendieck",
-      "number": "39-23-6423122"
-    }
-]
+  {
+    "id": 1,
+    "name": "Arto Hellas",
+    "number": "040-123456"
+  },
+  {
+    "id": 2,
+    "name": "Ada Lovelace",
+    "number": "39-44-5323523"
+  },
+  {
+    "id": 3,
+    "name": "Dan Abramov",
+    "number": "12-43-234345"
+  },
+  {
+    "id": 4,
+    "name": "Mary Poppendieck",
+    "number": "39-23-6423122"
+  }
+];
 
 app.use(express.json());
-app.use(morgan('tiny'));
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :person_detail'));
 
+morgan.token('person_detail', (request) =>
+  request.method === 'POST' && request.body.name
+    ? JSON.stringify(request.body)
+    : null
+)
 
 app.get('/api/persons', (req, res) => {
   res.json(persons)
@@ -83,10 +88,6 @@ app.post('/api/persons', (req, res) => {
   if (!body.name || !body.number) {
     return res.status(404).json({
       error: 'The name or number is missing'
-    })
-  } else {
-    return res.status(404).json({
-      error: 'name must be unique'
     })
   }
   persons = persons.concat(person)
