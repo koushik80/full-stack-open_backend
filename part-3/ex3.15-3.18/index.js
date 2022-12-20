@@ -1,5 +1,3 @@
-//ex 3.15-3.18
-
 const express = require('express');
 const morgan = require('morgan')
 const app = express();
