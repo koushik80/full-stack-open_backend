@@ -1,5 +1,6 @@
 
 const blogsRouter = require('express').Router()
+const logger = require('../utils/logger')
 const jwt = require('jsonwebtoken')
 const Blog = require('../models/blog')
 const User = require('../models/user')
@@ -49,6 +50,7 @@ blogsRouter.post('/', async (req, res, next) => {
 
   try {
     const savedBlog = await blog.save()
+    logger.info(`added ${blog.title} to the blog list`)
     user.blogs = user.blogs.concat(savedBlog._id)
     await user.save()
     res.status(201).json(savedBlog.toJSON())
@@ -91,20 +93,30 @@ blogsRouter.put('/:id', async (req, res, next) => {
     body.comments = []
   }
 
-  const blog = {
-    title: body.title,
-    author: body.author,
-    url: body.url,
-    likes: body.likes || 0,
-    comments: body.comments,
-  }
+  const token = req.token
+  const decodedToken = jwt.verify(token, process.env.SECRET)
+  const user = await User.findById(decodedToken.id)
 
-  try {
-    const updatedBlog = Blog.findByIdAndUpdate(req.param.id, blog, { new: true })
-    res.json(updatedBlog.toJSON())
+  const blogToUpdate = await Blog.findById(req.params.id)
 
-  } catch (exception) {
-    next(exception)
+  if ( blogToUpdate.user._id.toString() === user._id.toString() ) {
+    const blog = {
+      title: body.title,
+      author: body.author,
+      url: body.url,
+      likes: body.likes,
+      comments: body.comments,
+    }
+
+    try {
+      const updatedBlog = await Blog.findByIdAndUpdate(req.params.id, blog, { new: true })
+      logger.info(`blog ${blog.title} successfully updated`)
+      res.json(updatedBlog.toJSON())
+    } catch (exception) {
+      next(exception)
+    }
+  } else {
+    return res.status(401).json({ error: 'Unauthorized' })
   }
 })
 
